@@ -26,6 +26,7 @@ import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.data.Identifier;
 import net.william278.husksync.data.Serializer;
+import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.sync.DataSyncer;
 import net.william278.husksync.user.OnlineUser;
 import net.william278.husksync.user.User;
@@ -169,7 +170,7 @@ public class HuskSyncAPI {
             final DataSnapshot.Packed packed = data instanceof DataSnapshot.Unpacked unpacked
                     ? unpacked.pack(plugin) : (DataSnapshot.Packed) data;
             addSnapshot(user, packed);
-            plugin.getRedisManager().sendUserDataUpdate(user, packed);
+            plugin.getRedisManager().setUserData(user, packed, RedisKeyType.TTL_1_YEAR);
         });
     }
 
