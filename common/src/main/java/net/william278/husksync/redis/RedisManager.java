@@ -64,6 +64,7 @@ public class RedisManager extends JedisPubSub {
     @Blocking
     public void initialize() throws IllegalStateException {
         final Settings.RedisSettings.RedisCredentials credentials = plugin.getSettings().getRedis().getCredentials();
+        final String username = credentials.getUsername();
         final String password = credentials.getPassword();
         final String host = credentials.getHost();
         final int port = credentials.getPort();
@@ -80,7 +81,7 @@ public class RedisManager extends JedisPubSub {
         if (redisSentinelNodes.isEmpty()) {
             this.jedisPool = password.isEmpty()
                     ? new JedisPool(config, host, port, 0, useSSL)
-                    : new JedisPool(config, host, port, 0, password, useSSL);
+                    : new JedisPool(config, host, port, 0, username, password, useSSL);
         } else {
             final String sentinelPassword = sentinel.getPassword();
             this.jedisPool = new JedisSentinelPool(sentinel.getMaster(), redisSentinelNodes, password.isEmpty()
