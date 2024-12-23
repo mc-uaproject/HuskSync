@@ -20,6 +20,7 @@
 package net.william278.husksync.command;
 
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.api.HuskSyncAPI;
 import net.william278.husksync.data.DataSnapshot;
 import net.william278.husksync.user.CommandUser;
 import net.william278.husksync.user.OnlineUser;
@@ -63,26 +64,14 @@ public abstract class ItemsCommand extends PluginCommand {
         }, user("username"));
     }
 
-    // View (and edit) the latest user data
+    // View (NOT edit) the latest user data
     private void showLatestItems(@NotNull OnlineUser viewer, @NotNull User user) {
-        plugin.getRedisManager().getUserData(user.getUuid(), user).thenAccept(data -> data
-                .or(() -> plugin.getDatabase().getLatestSnapshot(user))
-                .or(() -> {
-                    plugin.getLocales().getLocale("error_no_data_to_display")
-                            .ifPresent(viewer::sendMessage);
-                    return Optional.empty();
-                })
-                .flatMap(packed -> {
-                    if (packed.isInvalid()) {
-                        plugin.getLocales().getLocale("error_invalid_data", packed.getInvalidReason(plugin))
-                                .ifPresent(viewer::sendMessage);
-                        return Optional.empty();
-                    }
-                    return Optional.of(packed.unpack(plugin));
-                })
-                .ifPresent(snapshot -> this.showItems(
-                        viewer, snapshot, user, viewer.hasPermission(getPermission("edit"))
-                )));
+        HuskSyncAPI.getInstance().getLatestSnapshot(user).thenApply(
+                snapshotOptional -> {
+                    snapshotOptional.ifPresent(snapshot -> showSnapshotItems(viewer, user, snapshot.getId()));
+                    return null;
+                }
+        );
     }
 
     // View a specific version of the user data
