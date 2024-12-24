@@ -101,6 +101,7 @@ public interface BukkitMapPersister {
             } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof Container box) {
                 forEachMap(box.getInventory().getContents(), function);
                 b.setBlockState(box);
+                item.setItemMeta(b);
             }
         }
         return items;
