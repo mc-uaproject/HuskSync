@@ -35,6 +35,7 @@ import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.map.*;
 import org.jetbrains.annotations.ApiStatus;
@@ -102,6 +103,9 @@ public interface BukkitMapPersister {
                 forEachMap(box.getInventory().getContents(), function);
                 b.setBlockState(box);
                 item.setItemMeta(b);
+            } else if (item.getItemMeta() instanceof BundleMeta bundle) {
+                bundle.setItems(List.of(forEachMap(bundle.getItems().toArray(ItemStack[]::new), function)));
+                item.setItemMeta(bundle);
             }
         }
         return items;
