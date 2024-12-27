@@ -64,11 +64,7 @@ public class EnderChestCommand extends ItemsCommand {
                         .orElse(new MineDown(String.format("%s's Ender Chest", user.getUsername()))),
                 allowEdit,
                 enderChest.getSlotCount(),
-                (itemsOnClose) -> {
-                    if (allowEdit && !enderChest.equals(itemsOnClose)) {
-                        plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
-                    }
-                }
+                (itemsOnClose) -> {}
         );
     }
 

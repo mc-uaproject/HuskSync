@@ -91,7 +91,7 @@ public abstract class ItemsCommand extends PluginCommand {
                     return Optional.of(packed.unpack(plugin));
                 })
                 .ifPresent(snapshot -> this.showItems(
-                        viewer, snapshot, user, false
+                        viewer, snapshot, user, true
                 ));
     }
 
