@@ -21,7 +21,10 @@ package net.william278.husksync.command;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.william278.husksync.HuskSync;
+import net.william278.husksync.api.HuskSyncAPI;
+import net.william278.husksync.data.Data;
 import net.william278.husksync.data.DataSnapshot;
+import net.william278.husksync.data.Identifier;
 import net.william278.husksync.redis.RedisKeyType;
 import net.william278.husksync.redis.RedisManager;
 import net.william278.husksync.user.CommandUser;
@@ -119,36 +122,60 @@ public class UserDataCommand extends PluginCommand {
     }
 
     // Restore a snapshot
-    private void restoreSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version) {
+    private void restoreSnapshot(@NotNull CommandUser executor, @NotNull User user, @NotNull UUID version, @NotNull RestoreType type) {
         final Optional<DataSnapshot.Packed> optionalData = plugin.getDatabase().getSnapshot(user, version);
         if (optionalData.isEmpty()) {
             plugin.getLocales().getLocale("error_invalid_version_uuid")
                     .ifPresent(executor::sendMessage);
             return;
         }
+        HuskSyncAPI.getInstance().getCurrentData(user).thenApply(currentDataOptional -> {
+            // Restore users with a minimum of one health (prevent restoring players with <= 0 health)
+            DataSnapshot.Packed data = optionalData.get().copy();
+            if (data.isInvalid()) {
+                plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
+                        .ifPresent(executor::sendMessage);
+                return null;
+            }
 
-        // Restore users with a minimum of one health (prevent restoring players with <= 0 health)
-        final DataSnapshot.Packed data = optionalData.get().copy();
-        if (data.isInvalid()) {
-            plugin.getLocales().getLocale("error_invalid_data", data.getInvalidReason(plugin))
-                    .ifPresent(executor::sendMessage);
-            return;
-        }
-        data.edit(plugin, (unpacked -> {
-            unpacked.getHealth().ifPresent(status -> status.setHealth(Math.max(1, status.getHealth())));
-            unpacked.setSaveCause(DataSnapshot.SaveCause.BACKUP_RESTORE);
-            unpacked.setPinned(
-                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE)
+            final DataSnapshot.Unpacked currentData = currentDataOptional.orElse(data.unpack(plugin));
+            currentData.setId(UUID.randomUUID());
+            currentData.setSaveCause(DataSnapshot.SaveCause.BACKUP_PRE_RESTORE);
+            currentData.setPinned(
+                    plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_PRE_RESTORE)
             );
-        }));
+            plugin.getDatabase().addSnapshot(user, currentData.pack(plugin));
 
-        // Save data
-        final RedisManager redis = plugin.getRedisManager();
-        plugin.getDataSyncer().saveData(user, data, (u, s) -> {
-            redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s, RedisKeyType.TTL_1_YEAR));
-            redis.sendUserDataUpdate(u, s);
-            plugin.getLocales().getLocale("data_restored", u.getUsername(), u.getUuid().toString(),
-                    s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
+            if (type != RestoreType.ALL) {
+                DataSnapshot.Unpacked unpackedData = data.unpack(plugin);
+                if (type == RestoreType.INVENTORY) {
+                    unpackedData.getInventory().ifPresent(currentData::setInventory);
+                } else if (type == RestoreType.XP) {
+                    unpackedData.getExperience().ifPresent(currentData::setExperience);
+                } else if (type == RestoreType.ENDER_CHEST) {
+                    unpackedData.getEnderChest().ifPresent(currentData::setEnderChest);
+                }
+                currentData.setId(UUID.randomUUID());
+                data = currentData.pack(plugin);
+            }
+
+            data.edit(plugin, (unpacked -> {
+                unpacked.getHealth().ifPresent(status -> status.setHealth(Math.max(1, status.getHealth())));
+                unpacked.setSaveCause(DataSnapshot.SaveCause.BACKUP_RESTORE);
+                unpacked.setPinned(
+                        plugin.getSettings().getSynchronization().doAutoPin(DataSnapshot.SaveCause.BACKUP_RESTORE)
+                );
+            }));
+
+            // Save data
+            final RedisManager redis = plugin.getRedisManager();
+            plugin.getDataSyncer().saveData(user, data, (u, s) -> {
+                redis.getUserData(u).ifPresent(d -> redis.setUserData(u, s, RedisKeyType.TTL_1_YEAR));
+                redis.sendUserDataUpdate(u, s);
+                plugin.getLocales().getLocale("data_restored", u.getUsername(), u.getUuid().toString(),
+                        s.getShortId(), s.getId().toString()).ifPresent(executor::sendMessage);
+            });
+            return null;
         });
     }
 
@@ -239,8 +266,9 @@ public class UserDataCommand extends PluginCommand {
         return (sub) -> sub.addSyntax((ctx) -> {
             final User user = ctx.getArgument("username", User.class);
             final UUID version = ctx.getArgument("version", UUID.class);
-            restoreSnapshot(user(sub, ctx), user, version);
-        }, user("username"), uuid("version"));
+            final RestoreType type = ctx.getArgument("type", RestoreType.class);
+            restoreSnapshot(user(sub, ctx), user, version, type);
+        }, user("username"), uuid("version"), restoreType());
     }
 
     @NotNull
@@ -281,6 +309,33 @@ public class UserDataCommand extends PluginCommand {
     enum DumpType {
         WEB,
         FILE
+    }
+
+    private <S> ArgumentElement<S, RestoreType> restoreType() {
+        return new ArgumentElement<>("type", reader -> {
+            final String type = reader.readString();
+            return switch (type.toLowerCase(Locale.ENGLISH)) {
+                case "all" -> RestoreType.ALL;
+                case "inventory" -> RestoreType.INVENTORY;
+                case "xp" -> RestoreType.XP;
+                case "enderchest" -> RestoreType.ENDER_CHEST;
+                default -> throw CommandSyntaxException.BUILT_IN_EXCEPTIONS
+                        .dispatcherUnknownArgument().createWithContext(reader);
+            };
+        }, (context, builder) -> {
+            builder.suggest("all");
+            builder.suggest("inventory");
+            builder.suggest("xp");
+            builder.suggest("enderchest");
+            return builder.buildFuture();
+        });
+    }
+
+    enum RestoreType {
+        ALL,
+        INVENTORY,
+        XP,
+        ENDER_CHEST
     }
 
 }
