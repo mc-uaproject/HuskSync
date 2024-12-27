@@ -21,6 +21,8 @@ package net.william278.husksync.data;
 
 import net.william278.husksync.BukkitHuskSync;
 import net.william278.husksync.util.BukkitMapPersister;
+import net.william278.husksync.util.ExclusionManager;
+import net.william278.husksync.util.InventoryModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +71,11 @@ public interface BukkitUserDataHolder extends UserDataHolder {
         }
         final PlayerInventory inventory = getPlayer().getInventory();
         return Optional.of(BukkitData.Items.Inventory.from(
-                getMapPersister().persistLockedMaps(inventory.getContents(), getPlayer()),
+                InventoryModifier.modifyInventory(
+                        getMapPersister().persistLockedMaps(inventory.getContents(), getPlayer()),
+                        ExclusionManager::isExcluded,
+                        item -> null
+                ),
                 inventory.getHeldItemSlot()
         ));
     }
@@ -78,7 +84,11 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @Override
     default Optional<Data.Items.EnderChest> getEnderChest() {
         return Optional.of(BukkitData.Items.EnderChest.adapt(
-                getMapPersister().persistLockedMaps(getPlayer().getEnderChest().getContents(), getPlayer())
+                InventoryModifier.modifyInventory(
+                        getMapPersister().persistLockedMaps(getPlayer().getEnderChest().getContents(), getPlayer()),
+                        ExclusionManager::isExcluded,
+                        item -> null
+                )
         ));
     }
 
