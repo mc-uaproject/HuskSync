@@ -17,7 +17,7 @@ public class InventoryModifier {
             final ItemStack item = items[i];
             if (item != null) {
                 if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof Container box) {
-                    modifyInventory(box.getInventory().getContents(), check, function);
+                    box.getInventory().setContents(modifyInventory(box.getInventory().getContents(), check, function));
                     b.setBlockState(box);
                     item.setItemMeta(b);
                 } else if (item.getItemMeta() instanceof BundleMeta bundle) {
