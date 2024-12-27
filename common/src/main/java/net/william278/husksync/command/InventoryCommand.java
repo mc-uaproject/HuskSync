@@ -65,11 +65,7 @@ public class InventoryCommand extends ItemsCommand {
                         .orElse(new MineDown(String.format("%s's Inventory", user.getUsername()))),
                 allowEdit,
                 inventory.getSlotCount(),
-                (itemsOnClose) -> {
-                    if (allowEdit && !inventory.equals(itemsOnClose)) {
-                        plugin.runAsync(() -> this.updateItems(viewer, itemsOnClose, user));
-                    }
-                }
+                (itemsOnClose) -> {}
         );
     }
 

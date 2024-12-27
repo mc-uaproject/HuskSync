@@ -168,6 +168,7 @@ public class Settings {
         public static class RedisCredentials {
             private String host = "localhost";
             private int port = 6379;
+            private String username = "";
             private String password = "";
             private boolean useSsl = false;
         }

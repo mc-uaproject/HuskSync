@@ -370,7 +370,7 @@ public class DataSnapshot {
     public static class Unpacked extends DataSnapshot implements DataHolder {
 
         @Expose(serialize = false, deserialize = false)
-        private final TreeMap<Identifier, Data> deserialized;
+        private final Map<Identifier, Data> deserialized;
 
         private Unpacked(@NotNull UUID id, boolean pinned, @NotNull OffsetDateTime timestamp,
                          @NotNull String saveCause, @NotNull String serverName, @NotNull Map<String, String> data,
@@ -389,14 +389,14 @@ public class DataSnapshot {
 
         @NotNull
         @ApiStatus.Internal
-        private TreeMap<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
+        private Map<Identifier, Data> deserializeData(@NotNull HuskSync plugin) {
             return data.entrySet().stream()
                     .filter(e -> plugin.getIdentifier(e.getKey()).isPresent())
                     .map(entry -> Map.entry(plugin.getIdentifier(entry.getKey()).orElseThrow(), entry.getValue()))
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
                             entry -> plugin.deserializeData(entry.getKey(), entry.getValue(), getMinecraftVersion()),
-                            (a, b) -> b, () -> Maps.newTreeMap(SerializerRegistry.DEPENDENCY_ORDER_COMPARATOR)
+                            (a, b) -> b, Maps::newHashMap
                     ));
         }
 
@@ -879,6 +879,13 @@ public class DataSnapshot {
          * @since 2.0
          */
         public static final SaveCause BACKUP_RESTORE = of("BACKUP_RESTORE");
+
+        /**
+         * Indicates data was saved before restoring from a previous version
+         *
+         * @since 2.0
+         */
+        public static final SaveCause BACKUP_PRE_RESTORE = of("BACKUP_PRE_RESTORE");
 
         /**
          * Indicates data was saved by an API call

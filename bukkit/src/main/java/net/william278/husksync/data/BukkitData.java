@@ -590,7 +590,6 @@ public abstract class BukkitData implements Data {
                     instance.getBaseValue(),
                     instance.getModifiers().stream()
                             .filter(modifier -> !settings.isIgnoredModifier(modifier.getName()))
-                            .filter(modifier -> modifier.getSlotGroup() != EquipmentSlotGroup.ANY)
                             .map(BukkitData.Attributes::adapt).collect(Collectors.toSet())
             );
         }
