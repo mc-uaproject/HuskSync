@@ -72,7 +72,7 @@ public interface BukkitMapPersister {
         if (!getPlugin().getSettings().getSynchronization().isPersistLockedMaps()) {
             return items;
         }
-        return forEachMap(items, map -> this.persistMapView(map, delegateRenderer));
+        return InventoryModifier.modifyInventory(items, this::isMap, map -> this.persistMapView(map, delegateRenderer));
     }
 
     /**
@@ -86,29 +86,11 @@ public interface BukkitMapPersister {
         if (!getPlugin().getSettings().getSynchronization().isPersistLockedMaps()) {
             return items;
         }
-        return forEachMap(items, this::applyMapView);
+        return InventoryModifier.modifyInventory(items, this::isMap, this::applyMapView);
     }
 
-    // Perform an operation on each map in an array of ItemStacks
-    @NotNull
-    private ItemStack[] forEachMap(ItemStack[] items, @NotNull Function<ItemStack, ItemStack> function) {
-        for (int i = 0; i < items.length; i++) {
-            final ItemStack item = items[i];
-            if (item == null) {
-                continue;
-            }
-            if (item.getType() == Material.FILLED_MAP && item.hasItemMeta()) {
-                items[i] = function.apply(item);
-            } else if (item.getItemMeta() instanceof BlockStateMeta b && b.getBlockState() instanceof Container box) {
-                forEachMap(box.getInventory().getContents(), function);
-                b.setBlockState(box);
-                item.setItemMeta(b);
-            } else if (item.getItemMeta() instanceof BundleMeta bundle) {
-                bundle.setItems(List.of(forEachMap(bundle.getItems().toArray(ItemStack[]::new), function)));
-                item.setItemMeta(bundle);
-            }
-        }
-        return items;
+    private boolean isMap(@Nullable ItemStack item) {
+        return item != null && item.getType() == Material.FILLED_MAP && item.hasItemMeta();
     }
 
     @NotNull
