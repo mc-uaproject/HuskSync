@@ -81,6 +81,7 @@ public class RedisManager extends JedisPubSub {
         if (redisSentinelNodes.isEmpty()) {
             this.jedisPool = password.isEmpty()
                     ? new JedisPool(config, host, port, 0, useSSL)
+                    : username.isEmpty() ? new JedisPool(config, host, port, 0, password, useSSL)
                     : new JedisPool(config, host, port, 0, username, password, useSSL);
         } else {
             final String sentinelPassword = sentinel.getPassword();
