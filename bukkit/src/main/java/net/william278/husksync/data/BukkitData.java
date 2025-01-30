@@ -31,6 +31,8 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.adapter.Adaptable;
 import net.william278.husksync.config.Settings.SynchronizationSettings.AttributeSettings;
 import net.william278.husksync.user.BukkitUser;
+import net.william278.husksync.util.ExclusionManager;
+import net.william278.husksync.util.InventoryModifier;
 import org.bukkit.*;
 import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.attribute.AttributeInstance;
@@ -154,7 +156,15 @@ public abstract class BukkitData implements Data {
                 final Player player = user.getPlayer();
                 this.clearInventoryCraftingSlots(player);
                 player.setItemOnCursor(null);
-                player.getInventory().setContents(plugin.setMapViews(getContents()));
+                ItemStack[] contents = plugin.setMapViews(getContents());
+                if (plugin.getSettings().isApplyExclusion()) {
+                    InventoryModifier.modifyInventory(
+                            contents,
+                            ExclusionManager::isExcluded,
+                            item -> null
+                    );
+                }
+                player.getInventory().setContents(contents);
                 player.getInventory().setHeldItemSlot(heldItemSlot);
                 //noinspection UnstableApiUsage
                 player.updateInventory();
@@ -194,7 +204,15 @@ public abstract class BukkitData implements Data {
 
             @Override
             public void apply(@NotNull BukkitUser user, @NotNull BukkitHuskSync plugin) throws IllegalStateException {
-                user.getPlayer().getEnderChest().setContents(plugin.setMapViews(getContents()));
+                ItemStack[] contents = plugin.setMapViews(getContents());
+                if (plugin.getSettings().isApplyExclusion()) {
+                    InventoryModifier.modifyInventory(
+                            contents,
+                            ExclusionManager::isExcluded,
+                            item -> null
+                    );
+                }
+                user.getPlayer().getEnderChest().setContents(contents);
             }
 
         }

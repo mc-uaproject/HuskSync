@@ -76,6 +76,9 @@ public class Settings {
     @Comment("Whether to cancel game event packets directly when handling locked players if ProtocolLib or PacketEvents is installed")
     private boolean cancelPackets = true;
 
+    @Comment("Whether to apply item exclusion on this server")
+    private boolean applyExclusion = true;
+
     @Comment("Add HuskSync commands to this list to prevent them from being registered (e.g. ['userdata'])")
     @Getter(AccessLevel.NONE)
     private List<String> disabledCommands = Lists.newArrayList();
