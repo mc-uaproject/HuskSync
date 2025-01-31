@@ -91,6 +91,14 @@ public class DataSnapshotOverview {
                     .ifPresent(user::sendMessage);
         }
 
+        snapshot.getLocation().flatMap(location -> locales.getLocale(
+                "data_manager_location",
+                location.getWorld().name(),
+                String.valueOf(Math.round(location.getX())),
+                String.valueOf(Math.round(location.getY())),
+                String.valueOf(Math.round(location.getZ()))
+        )).ifPresent(user::sendMessage);
+
         // Snapshot size
         locales.getLocale("data_manager_size", String.format("%.2fKiB", snapshotSize / 1024f))
                 .ifPresent(user::sendMessage);

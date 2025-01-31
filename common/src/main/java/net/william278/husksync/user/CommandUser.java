@@ -22,6 +22,7 @@ package net.william278.husksync.user;
 import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
 
 public interface CommandUser {
@@ -37,6 +38,10 @@ public interface CommandUser {
 
     default void sendMessage(@NotNull MineDown mineDown) {
         this.sendMessage(mineDown.toComponent());
+    }
+
+    default void teleport(String world, double x, double y, double z) {
+        throw new NotImplementedException();
     }
 
 }

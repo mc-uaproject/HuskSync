@@ -102,10 +102,22 @@ public class HuskSyncCommand extends PluginCommand {
         command.addSubCommand("update", needsOp("update"), update());
         command.addSubCommand("forceupgrade", forceUpgrade());
         command.addSubCommand("migrate", migrate());
+        command.addSubCommand("tp", needsOp("tp"), tp());
     }
 
     private void about(@NotNull BaseCommand<?> c, @NotNull CommandContext<?> ctx) {
         user(c, ctx).getAudience().sendMessage(aboutMenu.toComponent());
+    }
+
+    private CommandProvider tp() {
+        return (sub) -> sub.addSyntax((ctx) -> {
+            final CommandUser user = user(sub, ctx);
+            String world = ctx.getArgument("world", String.class);
+            double x = ctx.getArgument("x", Double.class);
+            double y = ctx.getArgument("y", Double.class);
+            double z = ctx.getArgument("z", Double.class);
+            plugin.runSync(() -> user.teleport(world, x, y, z));
+        }, BaseCommand.string("world"), BaseCommand.doubleNum("x"), BaseCommand.doubleNum("y"), BaseCommand.doubleNum("z"));
     }
 
     @NotNull

@@ -73,14 +73,20 @@ public class Identifier {
     @Getter
     private final Set<Dependency> dependencies;
     @Setter
-    @Getter
     public boolean enabled;
+    @Getter
+    @Setter
+    public boolean saveOnly = false;
 
     private Identifier(@NotNull Key key, boolean enabledByDefault, @NotNull Set<Dependency> dependencies) {
         this.key = key;
         this.enabledByDefault = enabledByDefault;
         this.enabled = enabledByDefault;
         this.dependencies = dependencies;
+    }
+
+    public boolean isEnabled() {
+        return enabled || saveOnly;
     }
 
     /**
