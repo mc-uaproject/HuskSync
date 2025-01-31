@@ -71,11 +71,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
         }
         final PlayerInventory inventory = getPlayer().getInventory();
         return Optional.of(BukkitData.Items.Inventory.from(
-                InventoryModifier.modifyInventory(
-                        getMapPersister().persistLockedMaps(inventory.getContents(), getPlayer()),
-                        ExclusionManager::isExcluded,
-                        item -> null
-                ),
+                getMapPersister().persistLockedMaps(inventory.getContents(), getPlayer()),
                 inventory.getHeldItemSlot()
         ));
     }
@@ -84,11 +80,7 @@ public interface BukkitUserDataHolder extends UserDataHolder {
     @Override
     default Optional<Data.Items.EnderChest> getEnderChest() {
         return Optional.of(BukkitData.Items.EnderChest.adapt(
-                InventoryModifier.modifyInventory(
-                        getMapPersister().persistLockedMaps(getPlayer().getEnderChest().getContents(), getPlayer()),
-                        ExclusionManager::isExcluded,
-                        item -> null
-                )
+                getMapPersister().persistLockedMaps(getPlayer().getEnderChest().getContents(), getPlayer())
         ));
     }
 
