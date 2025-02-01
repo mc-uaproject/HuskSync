@@ -836,7 +836,7 @@ public class DataSnapshot {
          *
          * @since 2.0
          */
-        public static final SaveCause DISCONNECT = of("DISCONNECT");
+        public static final SaveCause DISCONNECT = of("DISCONNECT", false);
 
         /**
          * Indicates data saved when the world saved

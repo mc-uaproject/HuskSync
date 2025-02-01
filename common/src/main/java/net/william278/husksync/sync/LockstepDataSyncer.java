@@ -59,13 +59,13 @@ public class LockstepDataSyncer extends DataSyncer {
 
     @Override
     public void syncSaveUserData(@NotNull OnlineUser onlineUser) {
-        plugin.runAsync(() -> saveData(
-                onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
-                (user, data) -> {
-                    getRedis().setUserData(user, data, RedisKeyType.TTL_1_YEAR);
-                    getRedis().setUserCheckedOut(user, false);
-                }
-        ));
+        saveData(
+            onlineUser, onlineUser.createSnapshot(DataSnapshot.SaveCause.DISCONNECT),
+            (user, data) -> {
+                getRedis().setUserData(user, data, RedisKeyType.TTL_1_YEAR);
+                getRedis().setUserCheckedOut(user, false);
+            }
+        );
     }
 
 }
