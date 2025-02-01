@@ -107,7 +107,7 @@ public interface UserDataHolder extends DataHolder {
             try {
                 for (Map.Entry<Identifier, Data> entry : unpacked.getData().entrySet()) {
                     final Identifier identifier = entry.getKey();
-                    if (!identifier.isEnabled()) {
+                    if (!identifier.isEnabled() || identifier.isSaveOnly()) {
                         continue;
                     }
 

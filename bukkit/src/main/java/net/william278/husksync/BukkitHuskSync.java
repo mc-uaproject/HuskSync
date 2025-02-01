@@ -172,6 +172,7 @@ public class BukkitHuskSync extends JavaPlugin implements HuskSync, BukkitTask.S
             registerSerializer(Identifier.LOCATION, new Serializer.Json<>(this, BukkitData.Location.class));
             validateDependencies();
         });
+        Identifier.LOCATION.setSaveOnly(true);
 
         // Setup available migrators
         initialize("data migrators/converters", (plugin) -> {

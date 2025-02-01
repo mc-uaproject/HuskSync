@@ -27,6 +27,8 @@ import net.william278.husksync.HuskSync;
 import net.william278.husksync.data.BukkitData;
 import net.william278.husksync.data.BukkitUserDataHolder;
 import net.william278.husksync.data.Data;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -90,6 +92,11 @@ public class BukkitUser extends OnlineUser implements BukkitUserDataHolder {
     @Override
     public boolean hasPermission(@NotNull String node) {
         return player.hasPermission(node);
+    }
+
+    @Override
+    public void teleport(String world, double x, double y, double z) {
+        player.teleport(new Location(Bukkit.getWorld(world), x, y, z));
     }
 
     @Override
